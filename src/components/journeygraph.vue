@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 
 const props = defineProps({
   rides: {
@@ -55,7 +55,19 @@ const availableMonths = computed(() => {
   })
 })
 
-const currentMonthIndex = ref(Math.max(availableMonths.value.length - 1, 0))
+const currentMonthIndex = ref(0)
+
+watch(
+  availableMonths,
+  months => {
+    if (months.length) {
+      currentMonthIndex.value = months.length - 1
+    } else {
+      currentMonthIndex.value = 0
+    }
+  },
+  { immediate: true }
+)
 
 const currentMonthData = computed(() => {
   if (!availableMonths.value.length) return null
@@ -177,118 +189,3 @@ function nextMonth() {
   if (currentMonthIndex.value < availableMonths.value.length - 1) currentMonthIndex.value++
 }
 </script>
-
-<template>
-  <div class="journey-card card">
-    <div class="journey-head">
-      <div>
-        <div class="card-title">Ride journey</div>
-        <h3 class="journey-title">Daily distance vs elevation</h3>
-      </div>
-
-      <div class="journey-legend">
-        <span><i class="legend-dot distance"></i> Ride path</span>
-        <span><i class="legend-dot rider"></i> Current rider</span>
-      </div>
-    </div>
-
-    <div v-if="!availableMonths.length" class="empty">
-      <div class="empty-icon">🚴</div>
-      <div class="empty-title">No rides yet</div>
-      <p>Log rides and the cyclist will start moving through each month.</p>
-    </div>
-
-    <div v-else class="journey-wrap">
-      <div class="journey-toolbar">
-        <button class="month-nav-btn" @click="prevMonth" :disabled="currentMonthIndex === 0">
-          ←
-        </button>
-
-        <div class="journey-month-title">{{ monthTitle }}</div>
-
-        <button
-          class="month-nav-btn"
-          @click="nextMonth"
-          :disabled="currentMonthIndex === availableMonths.length - 1"
-        >
-          →
-        </button>
-      </div>
-
-      <svg
-        class="journey-svg"
-        :viewBox="`0 0 ${width} ${height}`"
-        preserveAspectRatio="none"
-      >
-        <!-- horizontal grid -->
-        <line
-          v-for="n in 4"
-          :key="`h-${n}`"
-          :x1="padding"
-          :x2="width - padding"
-          :y1="padding + ((height - padding * 2) / 4) * n"
-          :y2="padding + ((height - padding * 2) / 4) * n"
-          class="grid-line"
-        />
-
-        <!-- axis -->
-        <line
-          :x1="padding"
-          :x2="width - padding"
-          :y1="height - padding"
-          :y2="height - padding"
-          class="axis-line"
-        />
-
-        <!-- area -->
-        <path v-if="points.length" :d="areaD" class="journey-area" />
-
-        <!-- line -->
-        <path v-if="points.length" :d="pathD" class="journey-line" />
-
-        <!-- points -->
-        <g v-for="point in points" :key="point.index">
-          <circle :cx="point.x" :cy="point.y" r="5" class="journey-point" />
-        </g>
-
-        <!-- cyclist -->
-        <g
-          v-if="lastPoint"
-          class="cyclist-marker"
-          :transform="`translate(${lastPoint.x + 12}, ${lastPoint.y - 22}) scale(-1,1)`"
-        >
-          <text x="0" y="0" font-size="24">🚴</text>
-        </g>
-
-        <!-- day labels -->
-        <g v-for="label in dayLabels" :key="label.day">
-          <text
-            :x="label.x"
-            :y="height - 10"
-            text-anchor="middle"
-            class="axis-label"
-          >
-            {{ label.day }}
-          </text>
-        </g>
-      </svg>
-
-      <div class="journey-stats">
-        <div class="journey-stat">
-          <span>Distance this month</span>
-          <strong>{{ totalDistanceMonth }} km</strong>
-        </div>
-
-        <div class="journey-stat">
-          <span>Avg elevation</span>
-          <strong>{{ avgElevationMonth }} m</strong>
-        </div>
-
-        <div class="journey-stat">
-          <span>Rides this month</span>
-          <strong>{{ totalRidesMonth }}</strong>
-        </div>
-      </div>
-    </div>
-  </div>
-</template>

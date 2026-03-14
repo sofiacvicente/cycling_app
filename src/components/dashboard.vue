@@ -26,7 +26,7 @@
       </div>
     </section>
 
-    <journeygraph :rides="rides" />
+    <JourneyGraph :rides="rides" />
 
     <div class="stats-grid">
       <div class="stat-card">
@@ -148,7 +148,7 @@
             <div class="ride-name">{{ r.title }}</div>
 
             <div class="ride-meta">
-              <span class="pill accent">{{ r.dist }} km</span>
+              <span class="pill accent">{{ Number(r.dist).toFixed(1) }} km</span>
               <span v-if="r.dur" class="pill">{{ fmtDur(r.dur) }}</span>
               <span v-if="r.elev" class="pill">{{ r.elev }} m</span>
               <span class="pill">{{ r.type }}</span>
@@ -165,9 +165,9 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { getRides, TYPE_COLORS, fmtDate, fmtDur } from '../storage.js'
-import journeygraph from './journeygraph.vue'
+import JourneyGraph from './journeygraph.vue'
 
-const rides = ref(getRides())
+const rides = ref([])
 const chartRef = ref(null)
 
 const typeColor = t => TYPE_COLORS[t] || '#888'
@@ -191,9 +191,7 @@ const avgDist = computed(() =>
 )
 
 const recent = computed(() =>
-  [...rides.value]
-    .sort((a, b) => b.date.localeCompare(a.date))
-    .slice(0, 5)
+  [...rides.value].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 5)
 )
 
 const now = new Date()
@@ -220,6 +218,8 @@ function pad(n) {
 }
 
 onMounted(async () => {
+  rides.value = await getRides()
+
   const { Chart, registerables } = await import('chart.js')
   Chart.register(...registerables)
 
@@ -271,36 +271,8 @@ onMounted(async () => {
       maintainAspectRatio: false,
       plugins: {
         legend: { display: false }
-      },
-      scales: {
-        x: {
-          ticks: {
-            color: '#8f99ad',
-            font: { family: 'Inter', size: 11, weight: '600' }
-          },
-          grid: {
-            color: 'rgba(255,255,255,0.04)'
-          },
-          border: {
-            color: 'rgba(255,255,255,0.06)'
-          }
-        },
-        y: {
-          beginAtZero: true,
-          ticks: {
-            color: '#8f99ad',
-            font: { family: 'Inter', size: 11, weight: '600' }
-          },
-          grid: {
-            color: 'rgba(255,255,255,0.04)'
-          },
-          border: {
-            color: 'rgba(255,255,255,0.06)'
-          }
-        }
       }
     }
   })
 })
 </script>
-
