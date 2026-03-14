@@ -44,27 +44,33 @@
       </div>
 
       <div class="grid-2 mb-3">
-        <div class="card">
+        <div class="card stats-chart-card">
           <div class="card-title">Monthly km</div>
-          <canvas ref="monthlyRef" height="160"></canvas>
+          <div class="stats-chart-wrap stats-chart-wrap-lg">
+            <canvas ref="monthlyRef"></canvas>
+          </div>
         </div>
 
-        <div class="card">
+        <div class="card stats-chart-card">
           <div class="card-title">Ride type breakdown</div>
-          <canvas ref="typeRef" height="160"></canvas>
+          <div class="stats-chart-wrap stats-chart-wrap-lg">
+            <canvas ref="typeRef"></canvas>
+          </div>
         </div>
       </div>
 
-      <div class="card">
+      <div class="card stats-chart-card">
         <div class="card-title">Distance distribution</div>
-        <canvas ref="distRef" height="100"></canvas>
+        <div class="stats-chart-wrap stats-chart-wrap-sm">
+          <canvas ref="distRef"></canvas>
+        </div>
       </div>
     </template>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { getRides, TYPE_COLORS } from '../storage.js'
 
 const rides = ref([])
@@ -111,17 +117,30 @@ const TICK = {
   font: { family: 'Inter', size: 11, weight: '600' }
 }
 
+function destroyCharts() {
+  if (monthlyChart) {
+    monthlyChart.destroy()
+    monthlyChart = null
+  }
+  if (typeChart) {
+    typeChart.destroy()
+    typeChart = null
+  }
+  if (distChart) {
+    distChart.destroy()
+    distChart = null
+  }
+}
+
 async function buildCharts() {
   const { Chart, registerables } = await import('chart.js')
   Chart.register(...registerables)
 
-  if (monthlyChart) monthlyChart.destroy()
-  if (typeChart) typeChart.destroy()
-  if (distChart) distChart.destroy()
+  destroyCharts()
+  await nextTick()
 
   const now = new Date()
 
-  // Monthly km
   const months = []
   for (let i = 5; i >= 0; i--) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
@@ -129,6 +148,7 @@ async function buildCharts() {
 
     const km = rides.value
       .filter(r => {
+        if (!r.date) return false
         const rd = new Date(r.date + 'T00:00:00')
         return rd.getMonth() === d.getMonth() && rd.getFullYear() === d.getFullYear()
       })
@@ -157,6 +177,7 @@ async function buildCharts() {
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      animation: false,
       plugins: {
         legend: { display: false }
       },
@@ -176,7 +197,6 @@ async function buildCharts() {
     }
   })
 
-  // Type doughnut
   const typeCounts = {}
   rides.value.forEach(r => {
     const type = r.type || 'Other'
@@ -203,19 +223,22 @@ async function buildCharts() {
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      animation: false,
+      cutout: '62%',
       plugins: {
         legend: {
+          position: 'bottom',
           labels: {
             color: '#8f99ad',
             font: { family: 'Inter', size: 12, weight: '600' },
-            boxWidth: 12
+            boxWidth: 12,
+            padding: 16
           }
         }
       }
     }
   })
 
-  // Distance distribution
   const buckets = {
     '0–20': 0,
     '20–40': 0,
@@ -253,6 +276,7 @@ async function buildCharts() {
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      animation: false,
       plugins: {
         legend: { display: false }
       },
@@ -281,5 +305,9 @@ onMounted(async () => {
   rides.value = await getRides()
   loading.value = false
   await buildCharts()
+})
+
+onBeforeUnmount(() => {
+  destroyCharts()
 })
 </script>

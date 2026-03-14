@@ -3,7 +3,9 @@
     <div class="page-header flex items-center justify-between">
       <div>
         <div class="page-title">Rides</div>
-        <div class="page-subtitle">Your complete ride history</div>
+        <div class="page-subtitle">
+          {{ editingRideId ? 'Editing ride' : 'Your complete ride history' }}
+        </div>
       </div>
       <span class="badge">{{ rides.length }} ride{{ rides.length !== 1 ? 's' : '' }}</span>
     </div>
@@ -31,7 +33,9 @@
     </div>
 
     <div class="card mb-3">
-      <div class="card-title">Log a ride</div>
+      <div class="card-title">
+        {{ editingRideId ? 'Edit ride' : 'Log a ride' }}
+      </div>
 
       <div class="form-grid">
         <div class="form-group">
@@ -76,8 +80,21 @@
         </div>
       </div>
 
-      <button class="btn btn-primary btn-full" @click="handleAddRide" :disabled="saving">
-        {{ saving ? 'Saving...' : '+ Log Ride' }}
+      <button class="btn btn-primary btn-full" @click="handleSaveRide" :disabled="saving">
+        {{
+          saving
+            ? (editingRideId ? 'Updating...' : 'Saving...')
+            : (editingRideId ? 'Save changes' : '+ Log Ride')
+        }}
+      </button>
+
+      <button
+        v-if="editingRideId"
+        class="btn btn-ghost btn-full"
+        style="margin-top:10px"
+        @click="cancelEdit"
+      >
+        Cancel edit
       </button>
     </div>
 
@@ -129,9 +146,15 @@
           <div v-if="r.notes" class="ride-note">{{ r.notes }}</div>
         </div>
 
-        <button class="del-btn" @click="handleDeleteRide(r.id)" :disabled="deletingId === r.id">
-          {{ deletingId === r.id ? '...' : '✕' }}
-        </button>
+        <div class="ride-actions">
+          <button class="btn btn-ghost ride-edit-btn" @click="startEdit(r)">
+            Edit
+          </button>
+
+          <button class="del-btn" @click="handleDeleteRide(r.id)" :disabled="deletingId === r.id">
+            {{ deletingId === r.id ? '...' : '✕' }}
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -142,6 +165,7 @@ import { ref, computed, onMounted } from 'vue'
 import {
   getRides,
   addRide as addRideToDb,
+  updateRide as updateRideInDb,
   deleteRide as deleteRideFromDb,
   TYPE_COLORS,
   fmtDate,
@@ -154,6 +178,7 @@ const loading = ref(true)
 const saving = ref(false)
 const deletingId = ref(null)
 const sortNewest = ref(true)
+const editingRideId = ref(null)
 
 const today = new Date().toISOString().slice(0, 10)
 
@@ -213,13 +238,34 @@ async function loadRides() {
   loading.value = false
 }
 
-async function handleAddRide() {
+function startEdit(ride) {
+  editingRideId.value = ride.id
+
+  form.value = {
+    date: ride.date || today,
+    type: ride.type || 'Road',
+    dist: ride.dist ?? '',
+    dur: ride.dur ?? '',
+    elev: ride.elev ?? '',
+    title: ride.title || '',
+    notes: ride.notes || ''
+  }
+
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
+function cancelEdit() {
+  editingRideId.value = null
+  resetForm()
+}
+
+async function handleSaveRide() {
   if (!form.value.date || !form.value.dist) return
 
   try {
     saving.value = true
 
-    const newRide = {
+    const payload = {
       date: form.value.date,
       type: form.value.type,
       dist: parseFloat(form.value.dist),
@@ -229,11 +275,17 @@ async function handleAddRide() {
       notes: form.value.notes.trim()
     }
 
-    await addRideToDb(newRide)
+    if (editingRideId.value) {
+      await updateRideInDb(editingRideId.value, payload)
+    } else {
+      await addRideToDb(payload)
+    }
+
     await loadRides()
     resetForm()
+    editingRideId.value = null
   } catch (error) {
-    console.error('Failed to add ride:', error)
+    console.error('Failed to save ride:', error)
     alert('Could not save the ride.')
   } finally {
     saving.value = false
@@ -244,6 +296,12 @@ async function handleDeleteRide(id) {
   try {
     deletingId.value = id
     await deleteRideFromDb(id)
+
+    if (editingRideId.value === id) {
+      editingRideId.value = null
+      resetForm()
+    }
+
     await loadRides()
   } catch (error) {
     console.error('Failed to delete ride:', error)

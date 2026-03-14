@@ -1343,3 +1343,237 @@ select option {
   opacity: 0.35;
   cursor: not-allowed;
 }
+
+:root[data-theme="light"] {
+  --bg: #f3f6fb;
+  --bg-soft: #eaf0f8;
+  --surface: rgba(255, 255, 255, 0.86);
+  --surface-strong: #ffffff;
+  --surface2: #eef3f9;
+  --surface3: #dde6f1;
+  --border: rgba(16, 24, 40, 0.08);
+  --border-strong: rgba(16, 24, 40, 0.14);
+  --accent: #b3e635;
+  --accent-2: #84cc16;
+  --accent-dim: rgba(132, 204, 22, 0.12);
+  --accent-dim-2: rgba(132, 204, 22, 0.18);
+  --accent-border: rgba(132, 204, 22, 0.25);
+  --text: #0f172a;
+  --muted: #64748b;
+  --muted-2: #94a3b8;
+  --danger: #ef4444;
+  --shadow-xl: 0 30px 80px rgba(15, 23, 42, 0.12);
+  --shadow-lg: 0 18px 50px rgba(15, 23, 42, 0.08);
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+.card,
+.stat-card,
+.month-mini,
+.route-card,
+.garage-card,
+.ride-card {
+  background: var(--surface);
+  backdrop-filter: blur(10px);
+}
+
+.ride-list-with-photos {
+  display: grid;
+  gap: 12px;
+}
+
+.ride-card-rich {
+  align-items: stretch;
+}
+
+.ride-photo-thumb {
+  width: 104px;
+  height: 104px;
+  object-fit: cover;
+  border-radius: 18px;
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+}
+
+.ride-photo-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface2);
+  font-size: 1.6rem;
+}
+
+.ride-form-preview {
+  width: 100%;
+  max-height: 280px;
+  object-fit: cover;
+  border-radius: 18px;
+  margin-top: 12px;
+  border: 1px solid var(--border);
+}
+
+.weather-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+}
+
+.route-map {
+  width: 100%;
+  height: 420px;
+  border-radius: 22px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.progress-bar {
+  width: 100%;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.06);
+  overflow: hidden;
+  margin: 12px 0 10px;
+  border: 1px solid var(--border);
+}
+
+.progress-fill {
+  height: 100%;
+  width: 0;
+  background: linear-gradient(90deg, #ff7b7b, #ff9e47);
+  transition: width 0.25s ease;
+}
+
+.progress-fill.done {
+  background: linear-gradient(90deg, var(--accent), #47cfff);
+}
+
+.dashboard-side-stack {
+  display: grid;
+  gap: 18px;
+}
+
+.quick-action {
+  display: block;
+  padding: 14px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,0.03);
+}
+
+.quick-action strong {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.quick-action span {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.btn {
+  border: none;
+  cursor: pointer;
+  border-radius: 14px;
+  padding: 12px 16px;
+  font-weight: 700;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #0f172a;
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.btn-full {
+  width: 100%;
+}
+
+.mb-2 { margin-bottom: 12px; }
+.mb-3 { margin-bottom: 18px; }
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.form-group.full {
+  grid-column: 1 / -1;
+}
+
+.helper-text,
+.goal-pct,
+.micro-label {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+@media (max-width: 900px) {
+  .grid-2,
+  .weather-row {
+    grid-template-columns: 1fr;
+  }
+
+  .ride-card-rich {
+    flex-direction: column;
+  }
+
+  .ride-photo-thumb {
+    width: 100%;
+    height: 220px;
+  }
+}
+
+.stats-chart-card {
+  overflow: hidden;
+}
+
+.stats-chart-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.stats-chart-wrap-lg {
+  height: 320px;
+}
+
+.stats-chart-wrap-sm {
+  height: 260px;
+}
+
+.stats-chart-wrap canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100%;
+}
+
+@media (max-width: 700px) {
+  .stats-chart-wrap-lg {
+    height: 260px;
+  }
+
+  .stats-chart-wrap-sm {
+    height: 220px;
+  }
+}
+
+.ride-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ride-edit-btn {
+  padding: 8px 12px;
+  font-size: 12px;
+}

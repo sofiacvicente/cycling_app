@@ -8,6 +8,7 @@ import Rides from './components/rides.vue'
 import Stats from './components/stats.vue'
 import Goals from './components/goals.vue'
 import Routes from './components/routes.vue'
+import Garage from './components/garage.vue'
 
 const routes = [
   {
@@ -23,7 +24,8 @@ const routes = [
       { path: 'rides', component: Rides },
       { path: 'stats', component: Stats },
       { path: 'goals', component: Goals },
-      { path: 'routes', component: Routes }
+      { path: 'routes', component: Routes },
+      { path: 'garage', component: Garage }
     ]
   }
 ]

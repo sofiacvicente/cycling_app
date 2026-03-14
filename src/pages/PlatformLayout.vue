@@ -9,6 +9,7 @@
       <RouterLink to="/app/stats" class="nav-link">📊 Stats</RouterLink>
       <RouterLink to="/app/goals" class="nav-link">🎯 Goals</RouterLink>
       <RouterLink to="/app/routes" class="nav-link">🗺️ Routes</RouterLink>
+      <RouterLink to="/app/garage" class="nav-link"><span class="nav-icon">🚲</span><span>Garage</span></RouterLink>
     </nav>
 
     <main class="main">
