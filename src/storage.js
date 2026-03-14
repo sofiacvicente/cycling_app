@@ -6,6 +6,8 @@ const BIKES_KEY = 'ridelog_bikes_v1'
 const BIKE_SERVICE_KEY = 'ridelog_bike_service_v1'
 const RIDE_EXTRAS_KEY = 'ridelog_ride_extras_v1'
 const SETTINGS_KEY = 'ridelog_settings_v1'
+const PLANNED_RIDES_KEY = 'ridelog_planned_rides_v1'
+const RIDE_DRAFT_KEY = 'ridelog_ride_draft_v1'
 
 export async function getRides() {
   const { data, error } = await supabase
@@ -136,6 +138,26 @@ export async function getRidesWithExtras() {
     ...ride,
     ...(extras[String(ride.id)] || {})
   }))
+}
+
+export function getPlannedRides() {
+  return safeRead(PLANNED_RIDES_KEY, [])
+}
+
+export function savePlannedRides(rides) {
+  safeWrite(PLANNED_RIDES_KEY, rides)
+}
+
+export function saveRideDraft(draft) {
+  safeWrite(RIDE_DRAFT_KEY, draft)
+}
+
+export function getRideDraft() {
+  return safeRead(RIDE_DRAFT_KEY, null)
+}
+
+export function clearRideDraft() {
+  localStorage.removeItem(RIDE_DRAFT_KEY)
 }
 
 export function getSettings() {

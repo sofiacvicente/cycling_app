@@ -75,6 +75,28 @@
         </div>
 
         <div class="form-group full">
+          <label>Ride photo</label>
+          <input
+            type="file"
+            accept="image/*"
+            capture="environment"
+            @change="handlePhotoChange"
+          />
+
+          <div v-if="form.photo" class="ride-photo-preview-wrap">
+            <img :src="form.photo" alt="Ride preview" class="ride-photo-preview" />
+            <button
+              type="button"
+              class="btn btn-ghost"
+              style="margin-top:10px"
+              @click="removePhoto"
+            >
+              Remove photo
+            </button>
+          </div>
+        </div>
+
+        <div class="form-group full">
           <label>Notes</label>
           <textarea v-model="form.notes" placeholder="How did it go?"></textarea>
         </div>
@@ -125,35 +147,41 @@
     </div>
 
     <div v-else>
-      <div v-for="r in sorted" :key="r.id" class="ride-card">
-        <div class="type-dot" :style="{ background: typeColor(r.type) }"></div>
+      <div v-for="r in sorted" :key="r.id" class="ride-card ride-card-rich">
+        <img v-if="r.photo" :src="r.photo" alt="Ride photo" class="ride-photo-thumb" />
+        <div v-else class="ride-photo-thumb ride-photo-fallback">📷</div>
 
-        <div style="min-width:62px">
-          <span class="ride-date">{{ fmtDate(r.date) }}</span>
-        </div>
+        <div class="ride-main">
+          <div class="ride-top-row">
+            <div class="ride-top-left">
+              <div class="type-dot" :style="{ background: typeColor(r.type) }"></div>
+              <span class="ride-date">{{ fmtDate(r.date) }}</span>
+            </div>
 
-        <div class="ride-body">
-          <div class="ride-name">{{ r.title }}</div>
+            <div class="ride-actions">
+              <button class="btn btn-ghost ride-edit-btn" @click="startEdit(r)">
+                Edit
+              </button>
 
-          <div class="ride-meta">
-            <span class="pill accent">{{ Number(r.dist).toFixed(1) }} km</span>
-            <span v-if="r.dur" class="pill">{{ fmtDur(r.dur) }}</span>
-            <span v-if="r.elev" class="pill">↑{{ r.elev }}m</span>
-            <span v-if="speed(r)" class="pill">{{ speed(r) }}</span>
-            <span class="pill">{{ r.type }}</span>
+              <button class="del-btn" @click="handleDeleteRide(r.id)" :disabled="deletingId === r.id">
+                {{ deletingId === r.id ? '...' : '✕' }}
+              </button>
+            </div>
           </div>
 
-          <div v-if="r.notes" class="ride-note">{{ r.notes }}</div>
-        </div>
+          <div class="ride-body">
+            <div class="ride-name">{{ r.title }}</div>
 
-        <div class="ride-actions">
-          <button class="btn btn-ghost ride-edit-btn" @click="startEdit(r)">
-            Edit
-          </button>
+            <div class="ride-meta">
+              <span class="pill accent">{{ Number(r.dist).toFixed(1) }} km</span>
+              <span v-if="r.dur" class="pill">{{ fmtDur(r.dur) }}</span>
+              <span v-if="r.elev" class="pill">↑{{ r.elev }}m</span>
+              <span v-if="speed(r)" class="pill">{{ speed(r) }}</span>
+              <span class="pill">{{ r.type }}</span>
+            </div>
 
-          <button class="del-btn" @click="handleDeleteRide(r.id)" :disabled="deletingId === r.id">
-            {{ deletingId === r.id ? '...' : '✕' }}
-          </button>
+            <div v-if="r.notes" class="ride-note">{{ r.notes }}</div>
+          </div>
         </div>
       </div>
     </div>
@@ -163,10 +191,13 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import {
-  getRides,
+  getRidesWithExtras,
   addRide as addRideToDb,
   updateRide as updateRideInDb,
   deleteRide as deleteRideFromDb,
+  saveRideExtra,
+  getRideDraft,
+  clearRideDraft,
   TYPE_COLORS,
   fmtDate,
   fmtDur,
@@ -189,7 +220,8 @@ const form = ref({
   dur: '',
   elev: '',
   title: '',
-  notes: ''
+  notes: '',
+  photo: ''
 })
 
 const typeColor = t => TYPE_COLORS[t] || '#888'
@@ -228,14 +260,34 @@ function resetForm() {
     dur: '',
     elev: '',
     title: '',
-    notes: ''
+    notes: '',
+    photo: ''
   }
 }
 
 async function loadRides() {
   loading.value = true
-  rides.value = await getRides()
+  rides.value = await getRidesWithExtras()
   loading.value = false
+}
+
+function loadDraftIntoForm() {
+  const draft = getRideDraft()
+  if (!draft) return
+
+  form.value = {
+    date: draft.date || today,
+    type: draft.type || 'Road',
+    dist: draft.dist ?? '',
+    dur: draft.dur ?? '',
+    elev: draft.elev ?? '',
+    title: draft.title || '',
+    notes: draft.notes || '',
+    photo: draft.photo || ''
+  }
+
+  clearRideDraft()
+  window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
 function startEdit(ride) {
@@ -248,7 +300,8 @@ function startEdit(ride) {
     dur: ride.dur ?? '',
     elev: ride.elev ?? '',
     title: ride.title || '',
-    notes: ride.notes || ''
+    notes: ride.notes || '',
+    photo: ride.photo || ''
   }
 
   window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -257,6 +310,21 @@ function startEdit(ride) {
 function cancelEdit() {
   editingRideId.value = null
   resetForm()
+}
+
+function handlePhotoChange(event) {
+  const file = event.target.files?.[0]
+  if (!file) return
+
+  const reader = new FileReader()
+  reader.onload = () => {
+    form.value.photo = reader.result
+  }
+  reader.readAsDataURL(file)
+}
+
+function removePhoto() {
+  form.value.photo = ''
 }
 
 async function handleSaveRide() {
@@ -275,11 +343,17 @@ async function handleSaveRide() {
       notes: form.value.notes.trim()
     }
 
+    let savedRide
+
     if (editingRideId.value) {
-      await updateRideInDb(editingRideId.value, payload)
+      savedRide = await updateRideInDb(editingRideId.value, payload)
     } else {
-      await addRideToDb(payload)
+      savedRide = await addRideToDb(payload)
     }
+
+    saveRideExtra(savedRide.id, {
+      photo: form.value.photo
+    })
 
     await loadRides()
     resetForm()
@@ -317,5 +391,6 @@ function toggleSort() {
 
 onMounted(async () => {
   await loadRides()
+  loadDraftIntoForm()
 })
 </script>

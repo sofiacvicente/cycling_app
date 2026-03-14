@@ -1577,3 +1577,85 @@ body {
   padding: 8px 12px;
   font-size: 12px;
 }
+
+.ride-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ride-edit-btn {
+  padding: 8px 12px;
+  font-size: 12px;
+}
+
+.ride-photo-preview-wrap {
+  margin-top: 12px;
+}
+
+.ride-photo-preview {
+  width: 100%;
+  max-height: 280px;
+  object-fit: cover;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  display: block;
+}
+
+.ride-card-rich {
+  display: flex;
+  gap: 14px;
+  align-items: stretch;
+}
+
+.ride-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.ride-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.ride-top-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ride-photo-thumb {
+  width: 110px;
+  height: 110px;
+  object-fit: cover;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.ride-photo-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.03);
+  font-size: 1.5rem;
+}
+
+@media (max-width: 700px) {
+  .ride-card-rich {
+    flex-direction: column;
+  }
+
+  .ride-photo-thumb {
+    width: 100%;
+    height: 220px;
+  }
+
+  .ride-top-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

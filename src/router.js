@@ -9,6 +9,7 @@ import Stats from './components/stats.vue'
 import Goals from './components/goals.vue'
 import Routes from './components/routes.vue'
 import Garage from './components/garage.vue'
+import Planner from './components/planner.vue'
 
 const routes = [
   {
@@ -25,7 +26,8 @@ const routes = [
       { path: 'stats', component: Stats },
       { path: 'goals', component: Goals },
       { path: 'routes', component: Routes },
-      { path: 'garage', component: Garage }
+      { path: 'garage', component: Garage },
+      { path: 'planner', component: Planner }
     ]
   }
 ]
